@@ -3,15 +3,67 @@
 <head>
   <meta charset="utf-8"/>
   <title>Websocket sample</title>
-  <script type="text/javascript">
-    var client = new WebSocket('ws://localhost:8080/websocket');
+  <script type="text/javascript" src="/resources/ext-all.js"></script>
+  <script type="text/javascript" src="/resources/WebSocket.min.js"></script>
+  <script type="text/javascript" src="/resources/WebSocketProxy.min.js"></script>
 
-    client.onopen = function(event) {
-      client.send('merong!');
-    };
+  <script type="text/javascript">
+    Ext.require(['Ext.ux.data.proxy.WebSocket']);
+
+    Ext.onReady(function () {
+      Ext.define('model', {
+        extend: 'Ext.data.Model',
+        fields: ['date', 'value'],
+        proxy: {
+          type: 'websocket',
+          storeId: 'dataStore',
+          url: 'ws://localhost:8080/websocket',
+          reader: {
+            type: 'json',
+            root: 'data'
+          }
+        }
+      });
+
+      var dataStore = Ext.create('Ext.data.Store', {
+        model: 'model',
+        storeId: 'dataStore'
+      });
+
+      var chart = Ext.create('Ext.chart.Chart', {
+        renderTo: Ext.getBody(),
+        title: 'Chart',
+        width: 500,
+        height: 300,
+        store: dataStore,
+        axes: [{
+          type: 'Time',
+          dateFormat: 'H:i',
+          step: [Ext.Date.MINUTE, 1],
+          position: 'bottom',
+          fields: ['date']
+        }, {
+          type: 'Numeric',
+          position: 'left',
+          minimum: 0,
+          fields: ['value']
+        }],
+        series: [{
+          type: 'line',
+          axes: 'left',
+          xField: 'date',
+          yField: 'value',
+          markerConfig: {
+            type: 'circle',
+            size: 4,
+            radius: 4,
+            'stroke-width': 0
+          }
+        }]
+      });
+    });
   </script>
 </head>
 <body>
-<h1>Websocket test</h1>
 </body>
 </html>
